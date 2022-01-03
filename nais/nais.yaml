@@ -18,7 +18,7 @@ spec:
     application:
       enabled: true
   elastic:
-    instance: toi-kandidat
+    instance: kandidat
   envFrom:
     - secret: toi-kandidat-es-proxy-credentials
   env:
