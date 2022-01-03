@@ -1,0 +1,4 @@
+{
+  "ingress": "https://toi-kandidat-es-proxy.intern.nav.no",
+  "elastic-search-api": "https://elastic-toi-kandidat-nav-prod.aivencloud.com:26482"
+}
