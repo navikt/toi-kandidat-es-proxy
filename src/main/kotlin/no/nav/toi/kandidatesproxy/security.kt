@@ -16,30 +16,32 @@ enum class Rolle : RouteRole {
     ALLE
 }
 
-fun styrTilgang(handler: Handler, ctx: Context, roller: MutableSet<RouteRole>, issuerProperties: List<IssuerProperties>) {
+val styrTilgang: (List<IssuerProperties>) -> (Handler, Context, Set<RouteRole>) -> Unit = { issuerProperties ->
+    { handler, ctx, roller ->
+        val autentiser: Autentiseringsmetode = when {
+            roller.contains(Rolle.ALLE) -> Autentiseringsmetode { true }
+            roller.contains(Rolle.SYSTEMBRUKER) -> autentiserSystembruker
+            roller.contains(Rolle.VEILEDER) -> autentiserVeileder
+            else -> Autentiseringsmetode { false }
+        }
 
-    val autentisertingsmetode: Autentiseringsmetode = when {
-        roller.contains(Rolle.ALLE) -> Autentiseringsmetode { true }
-        roller.contains(Rolle.SYSTEMBRUKER) -> autentisertSystembruker
-        roller.contains(Rolle.VEILEDER) -> autentisertVeileder
-        else -> Autentiseringsmetode { false }
-    }
+        val tokenClaims = hentTokenClaims(ctx, issuerProperties)
 
-    val tokenClaims = hentTokenClaims(ctx, issuerProperties)
+        if (autentiser(tokenClaims)) {
+            handler.handle(ctx)
+        } else {
+            throw ForbiddenResponse()
+        }
 
-    if (autentisertingsmetode.erAutentisert(tokenClaims)) {
-        handler.handle(ctx)
-    } else {
-        throw ForbiddenResponse()
     }
 }
 
 fun interface Autentiseringsmetode {
-    fun erAutentisert(claims: JwtTokenClaims?): Boolean
+    operator fun invoke(claims: JwtTokenClaims?): Boolean
 }
 
-val autentisertSystembruker = Autentiseringsmetode { it?.get("sub") == it?.get("oid") }
-val autentisertVeileder = Autentiseringsmetode { it?.get("NAVident")?.toString()?.isNotEmpty() ?: false }
+val autentiserSystembruker = Autentiseringsmetode { it?.get("sub") == it?.get("oid") }
+val autentiserVeileder = Autentiseringsmetode { it?.get("NAVident")?.toString()?.isNotEmpty() ?: false }
 
 
 private fun hentTokenClaims(ctx: Context, issuerProperties: List<IssuerProperties>) =

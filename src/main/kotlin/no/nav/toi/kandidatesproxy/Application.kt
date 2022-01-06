@@ -15,7 +15,7 @@ fun log(name: String): Logger = LoggerFactory.getLogger(name)
 fun startApp(issuerProperties: List<IssuerProperties>) {
     val javalin = Javalin.create {
         it.defaultContentType = "application/json"
-        it.accessManager { handler, ctx, permittedRoles -> styrTilgang(handler, ctx, permittedRoles, issuerProperties) }
+        it.accessManager(styrTilgang(issuerProperties))
     }
 
     javalin.routes {
