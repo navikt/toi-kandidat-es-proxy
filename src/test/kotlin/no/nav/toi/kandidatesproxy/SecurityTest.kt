@@ -43,7 +43,7 @@ class SecurityTest {
     }
 
     @Test
-    fun `avvise none uten signatur`() {
+    fun `Avvise none uten signatur`() {
         val token = hentToken(mockOAuth2Server)
         val tokenParts = token.serialize().split('.')
         val tokenStr = listOf(Base64.encode("{ \"alg\":\"none\" }"),tokenParts[1]).joinToString(".")
@@ -55,7 +55,7 @@ class SecurityTest {
     }
 
     @Test
-    fun `avvise none med signatur`() {
+    fun `Avvise none med signatur`() {
         val token = hentToken(mockOAuth2Server)
         val tokenParts = token.serialize().split('.')
         val tokenStr = listOf(Base64.encode("{ \"alg\":\"none\" }"),tokenParts[1],tokenParts[1]).joinToString(".")

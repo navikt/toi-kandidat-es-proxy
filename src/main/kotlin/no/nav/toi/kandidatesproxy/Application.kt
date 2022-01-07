@@ -12,16 +12,21 @@ val Any.log: Logger
 
 fun log(name: String): Logger = LoggerFactory.getLogger(name)
 
-fun startApp(issuerProperties: List<IssuerProperties>) {
+fun startApp(env: Map<String, String>, issuerProperties: List<IssuerProperties>) {
     val javalin = Javalin.create {
         it.defaultContentType = "application/json"
         it.accessManager(styrTilgang(issuerProperties))
     }
 
+    val username = env.hentMiljøvariabel("OPEN_SEARCH_USERNAME")
+    val password = env.hentMiljøvariabel("OPEN_SEARCH_PASSWORD")
+    val url = env.hentMiljøvariabel("OPEN_SEARCH_URI")
+    val søkeController = SøkeController(username, password, url)
+
     javalin.routes {
         get("/internal/isAlive", { it.status(200) }, Rolle.ALLE)
         get("/internal/isReady", { it.status(200) }, Rolle.ALLE)
-        post("/{indeks}/_search", { it.status(200) }, Rolle.VEILEDER)
+        post("/{indeks}/_search", søkeController.søkPåIndeks, Rolle.VEILEDER)
     }.start(8300)
 
     javalin.exception(Exception::class.java) { e, ctx ->
@@ -29,7 +34,10 @@ fun startApp(issuerProperties: List<IssuerProperties>) {
     }
 }
 
+private fun Map<String, String>.hentMiljøvariabel(variabel: String) =
+    this[variabel] ?: throw RuntimeException("Fant ikke miljøvariabel $variabel")
+
 fun main() {
     val envs = System.getenv()
-    startApp(hentIssuerProperties(envs))
+    startApp(envs, hentIssuerProperties(envs))
 }
