@@ -13,10 +13,11 @@ object LokalApplikasjon {
 
     fun startAppForTest() {
         EsMock.startEsMock()
+
         val env = mapOf(
-            "OPEN_SEARCH_USERNAME" to "dummy",
-            "OPEN_SEARCH_PASSWORD" to "tummy",
-            "OPEN_SEARCH_URI" to "https://open-search:${EsMock.esMockPort}"
+            "OPEN_SEARCH_USERNAME" to "dummy_username",
+            "OPEN_SEARCH_PASSWORD" to "dummy_password",
+            "OPEN_SEARCH_URI" to "http://localhost:9000"
         )
 
         if (!javalinServerStartet) {

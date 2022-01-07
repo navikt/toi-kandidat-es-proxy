@@ -2,6 +2,7 @@ package no.nav.toi.kandidatesproxy
 
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.extensions.authentication
+import com.github.kittinunf.result.Result
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import org.assertj.core.api.Assertions.assertThat
@@ -16,6 +17,7 @@ class KandidatsøkTest {
 
     private val mockOAuth2Server = MockOAuth2Server()
     private val feilIndeksSearchUrl = "http://localhost:8300/feilIndeks/_search"
+    private val eksisterendeIndeksSearchUrl = "http://localhost:8300/indeks/_search"
 
     @BeforeAll
     fun init() {
@@ -33,13 +35,24 @@ class KandidatsøkTest {
     fun `Søkekall mot feil indeks skal viderebringe svar fra OpenSearch-instans`() {
         val token = hentToken(mockOAuth2Server)
 
-
-        val (_, response, _) = Fuel.post(feilIndeksSearchUrl).authentication()
+        val (_, response, result) = Fuel.post(feilIndeksSearchUrl).authentication()
             .bearer(token.serialize())
             .responseString()
 
         assertThat(response.statusCode).isEqualTo(EsMock.feilResultatStatusKode)
-        assertThat(response.body()).isEqualTo(EsMock.jsonFeilResultat)
+        assertThat((result as Result.Failure).error.response.body()).isEqualTo(EsMock.jsonFeilResultat)
+    }
+
+    @Test
+    fun `Søkekall mot riktig indeks skal viderebringe svar fra OpenSearch-instans`() {
+        val token = hentToken(mockOAuth2Server)
+
+        val (_, response, result) = Fuel.post(eksisterendeIndeksSearchUrl).authentication()
+            .bearer(token.serialize())
+            .responseString()
+
+        assertThat(response.statusCode).isEqualTo(EsMock.korrektResultatStatusKode)
+        assertThat(result.get()).isEqualTo(EsMock.jsonResultat)
     }
 
     private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("isso-idtoken", "someclientid",

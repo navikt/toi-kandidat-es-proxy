@@ -4,7 +4,6 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.result.Result
 import io.javalin.http.Context
-import io.javalin.http.HttpCode
 
 class SøkeController(
     username: String,
@@ -15,13 +14,22 @@ class SøkeController(
         val indeks = ctx.pathParam("indeks")
         val searchUrl = "$url/$indeks/_search"
 
-        val (_, response, _) = Fuel
+        val (_, response, result) = Fuel
             .post(searchUrl)
             .authentication().basic(username, password)
             .body(ctx.body())
-            .response()
+            .responseString()
 
-        ctx.json(response.body())
-        ctx.status(response.statusCode)
+        when (result) {
+            is Result.Success -> {
+                ctx.json(result.get())
+                ctx.status(response.statusCode)
+            }
+
+            is Result.Failure -> {
+                ctx.json(result.error.response.body())
+                ctx.status(response.statusCode)
+            }
+        }
     }
 }
