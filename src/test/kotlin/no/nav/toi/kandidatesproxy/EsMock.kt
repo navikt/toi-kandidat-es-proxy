@@ -10,19 +10,45 @@ object EsMock {
 
     fun startEsMock() {
         if (serverHasStarted) return
-        ClientAndServer.startClientAndServer(9000)
+        ClientAndServer.startClientAndServer(esMockPort)
             .`when`(
                 request()
-                    .withMethod("GET")
-                    .withPath(".*")
+                    .withMethod("POST")
+                    .withPath("*"),
             )
             .respond(
                 response()
-                    .withStatusCode(200)
-                    .withBody(jsonResultat)
+                    .withStatusCode(feilResultatStatusKode)
+                    .withBody(jsonFeilResultat)
             )
         serverHasStarted = true
     }
 
-    val jsonResultat = ""
+    val esMockPort = 9000
+
+    val feilResultatStatusKode = 403
+
+    val jsonFeilResultat = """
+        {
+            "error": {
+                "root_cause": [
+                    {
+                        "type": "index_not_found_exception",
+                        "reason": "no such index [feilIndeks]",
+                        "index": "feilIndeks",
+                        "resource.id": "feilIndeks",
+                        "resource.type": "index_or_alias",
+                        "index_uuid": "_na_"
+                    }
+                ],
+                "type": "index_not_found_exception",
+                "reason": "no such index [feilIndeks]",
+                "index": "feilIndeks",
+                "resource.id": "feilIndeks",
+                "resource.type": "index_or_alias",
+                "index_uuid": "_na_"
+            },
+            "status": 404
+        }
+    """.trimIndent()
 }

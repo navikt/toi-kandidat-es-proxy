@@ -16,7 +16,7 @@ object LokalApplikasjon {
         val env = mapOf(
             "OPEN_SEARCH_USERNAME" to "dummy",
             "OPEN_SEARCH_PASSWORD" to "tummy",
-            "OPEN_SEARCH_URI" to "mummy"
+            "OPEN_SEARCH_URI" to "https://open-search:${EsMock.esMockPort}"
         )
 
         if (!javalinServerStartet) {
