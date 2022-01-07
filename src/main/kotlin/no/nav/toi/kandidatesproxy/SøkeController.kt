@@ -27,7 +27,7 @@ class SøkeController(
             }
 
             is Result.Failure -> {
-                ctx.json(result.error.response.body())
+                ctx.json(String(result.error.response.data))
                 ctx.status(response.statusCode)
             }
         }

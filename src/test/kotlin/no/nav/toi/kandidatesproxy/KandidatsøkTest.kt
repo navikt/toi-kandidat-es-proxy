@@ -40,7 +40,7 @@ class KandidatsøkTest {
             .responseString()
 
         assertThat(response.statusCode).isEqualTo(EsMock.feilResultatStatusKode)
-        assertThat((result as Result.Failure).error.response.body()).isEqualTo(EsMock.jsonFeilResultat)
+        assertThat(String((result as Result.Failure).error.response.data)).isEqualTo(EsMock.jsonFeilResultat)
     }
 
     @Test
