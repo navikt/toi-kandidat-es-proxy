@@ -2,9 +2,9 @@ apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
   name: toi-kandidat-es-proxy
-  namespace: arbeidsgiver
+  namespace: toi
   labels:
-    team: arbeidsgiver
+    team: toi
 spec:
   image: {{ image }}
   port: 8300
@@ -17,10 +17,10 @@ spec:
   azure:
     application:
       enabled: true
-  elastic:
-    instance: kandidat
-  envFrom:
-    - secret: toi-kandidat-es-proxy-credentials
+#  elastic:
+#    instance: kandidat
+#  envFrom:
+#    - secret: toi-kandidat-es-proxy-credentials
   env:
     - name: ELASTIC_SEARCH_API
       value: {{ elastic-search-api }}

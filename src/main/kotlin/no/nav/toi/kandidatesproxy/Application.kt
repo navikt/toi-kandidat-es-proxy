@@ -25,7 +25,7 @@ fun startApp(issuerProperties: List<IssuerProperties>) {
     }.start(8300)
 
     javalin.exception(Exception::class.java) { e, ctx ->
-        log("Main").error("Feil i stillingproxy", e)
+        log("Main").error("Feil i kandidat-es-proxy", e)
     }
 }
 
