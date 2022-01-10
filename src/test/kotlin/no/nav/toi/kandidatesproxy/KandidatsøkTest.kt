@@ -14,10 +14,9 @@ import java.net.InetAddress
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KandidatsøkTest {
-
     private val mockOAuth2Server = MockOAuth2Server()
     private val feilIndeksSearchUrl = "http://localhost:8300/feilIndeks/_search"
-    private val eksisterendeIndeksSearchUrl = "http://localhost:8300/indeks/_search"
+    private val eksisterendeIndeksSearchUrl = "http://localhost:8300/${EsMock.indeks}/_search"
 
     @BeforeAll
     fun init() {

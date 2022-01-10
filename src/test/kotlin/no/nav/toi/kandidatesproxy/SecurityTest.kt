@@ -15,11 +15,10 @@ import java.net.InetAddress
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SecurityTest {
-
-    val mockOAuth2Server = MockOAuth2Server()
-    val urlSomKreverAutentisering = "http://localhost:8300/kandidat/_search"
-    val isAliveUrl = "http://localhost:8300/internal/isAlive"
-    val isReadyUrl = "http://localhost:8300/internal/isReady"
+    private val mockOAuth2Server = MockOAuth2Server()
+    private val urlSomKreverAutentisering = "http://localhost:8300/${EsMock.indeks}/_search"
+    private val isAliveUrl = "http://localhost:8300/internal/isAlive"
+    private val isReadyUrl = "http://localhost:8300/internal/isReady"
 
     @BeforeAll
     fun init() {
@@ -36,9 +35,60 @@ class SecurityTest {
     fun `Kall med autentisert bruker mot beskyttet endepunkt skal returnere 200`() {
         val token = hentToken(mockOAuth2Server)
         val fuelHttpClient = FuelManager()
-        val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering).authentication()
-            .bearer(token.serialize())
+
+        val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering)
+            .authentication().bearer(token.serialize())
             .responseObject<String>()
+
+        assertThat(response.statusCode).isEqualTo(200)
+    }
+
+    @Test
+    fun `Kall uten autentisert bruker mot beskyttet endepunkt skal returnere 403`() {
+        val fuelHttpClient = FuelManager()
+        val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering)
+            .responseObject<String>()
+
+        assertThat(response.statusCode).isEqualTo(403)
+    }
+
+    @Test
+    fun `Kall med ugyldig token mot beskyttet endepunkt skal returnere 403`() {
+        val ugyldigToken = hentUgyldigToken(mockOAuth2Server)
+        val fuelHttpClient = FuelManager()
+        val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering).authentication()
+            .bearer(ugyldigToken.serialize())
+            .responseObject<String>()
+
+        assertThat(response.statusCode).isEqualTo(403)
+    }
+
+    @Test
+    fun `Kall med token uten claim for NAV-ident mot beskyttet endepunkt skal returnere 403`() {
+        val tokenUtenNavIdentClaim = hentTokenUtenNavIdentClaim(mockOAuth2Server)
+        val fuelHttpClient = FuelManager()
+        val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering).authentication()
+            .bearer(tokenUtenNavIdentClaim.serialize())
+            .responseObject<String>()
+
+         assertThat(response.statusCode).isEqualTo(403)
+    }
+
+    @Test
+    fun `Skal kunne kalle endepunkt for isAlive uten å være autentisert`() {
+        val fuelHttpClient = FuelManager()
+        val (_, response) = fuelHttpClient.get(isAliveUrl)
+            .responseObject<String>()
+
+        assertThat(response.statusCode).isEqualTo(200)
+    }
+
+    @Test
+    fun `Skal kunne kalle endepunkt for isReady uten å være autentisert`() {
+        val fuelHttpClient = FuelManager()
+        val (_, response) = fuelHttpClient.get(isReadyUrl)
+            .responseObject<String>()
+
         assertThat(response.statusCode).isEqualTo(200)
     }
 
@@ -51,6 +101,7 @@ class SecurityTest {
         val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering).authentication()
             .bearer(tokenStr)
             .responseObject<String>()
+
         assertThat(response.statusCode).isEqualTo(403)
     }
 
@@ -63,51 +114,8 @@ class SecurityTest {
         val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering).authentication()
             .bearer(tokenStr)
             .responseObject<String>()
+
         assertThat(response.statusCode).isEqualTo(403)
-    }
-
-    @Test
-    fun `Kall uten autentisert bruker mot beskyttet endepunkt skal returnere 403`() {
-        val fuelHttpClient = FuelManager()
-        val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering)
-            .responseObject<String>()
-        assertThat(response.statusCode).isEqualTo(403)
-    }
-
-    @Test
-    fun `Kall med ugyldig token mot beskyttet endepunkt skal returnere 403`() {
-        val ugyldigToken = hentUgyldigToken(mockOAuth2Server)
-        val fuelHttpClient = FuelManager()
-        val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering).authentication()
-            .bearer(ugyldigToken.serialize())
-            .responseObject<String>()
-        assertThat(response.statusCode).isEqualTo(403)
-    }
-
-    @Test
-    fun `Kall med token uten claim for NAV-ident mot beskyttet endepunkt skal returnere 403`() {
-        val tokenUtenNavIdentClaim = hentTokenUtenNavIdentClaim(mockOAuth2Server)
-        val fuelHttpClient = FuelManager()
-        val (_, response) = fuelHttpClient.post(urlSomKreverAutentisering).authentication()
-            .bearer(tokenUtenNavIdentClaim.serialize())
-            .responseObject<String>()
-         assertThat(response.statusCode).isEqualTo(403)
-    }
-
-    @Test
-    fun `Skal kunne kalle endepunkt for isAlive uten å være autentisert`() {
-        val fuelHttpClient = FuelManager()
-        val (_, response) = fuelHttpClient.get(isAliveUrl)
-            .responseObject<String>()
-        assertThat(response.statusCode).isEqualTo(200)
-    }
-
-    @Test
-    fun `Skal kunne kalle endepunkt for isReady uten å være autentisert`() {
-        val fuelHttpClient = FuelManager()
-        val (_, response) = fuelHttpClient.get(isReadyUrl)
-            .responseObject<String>()
-        assertThat(response.statusCode).isEqualTo(200)
     }
 
     private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("isso-idtoken", "someclientid",

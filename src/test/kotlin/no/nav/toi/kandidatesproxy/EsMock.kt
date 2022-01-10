@@ -26,7 +26,7 @@ object EsMock {
         client.`when`(
             request()
                 .withMethod("POST")
-                .withPath("/indeks/_search"),
+                .withPath("/$indeks/_search"),
         )
             .respond(
                 response()
@@ -43,6 +43,7 @@ object EsMock {
 
     const val feilResultatStatusKode = 403
     const val korrektResultatStatusKode = 200
+    const val indeks = "kandidat"
 
     val jsonFeilResultat = """
         {
