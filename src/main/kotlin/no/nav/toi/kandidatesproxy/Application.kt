@@ -28,7 +28,7 @@ fun startApp(env: Map<String, String>, issuerProperties: List<IssuerProperties>)
         get("/internal/isAlive", { it.status(200) }, Rolle.ALLE)
         get("/internal/isReady", { it.status(200) }, Rolle.ALLE)
 
-        path("/es") {
+        path("/es/*") {
             get(proxyController.proxyKall, Rolle.SYSTEMBRUKER)
             put(proxyController.proxyKall, Rolle.SYSTEMBRUKER)
             post(proxyController.proxyKall, Rolle.SYSTEMBRUKER)
