@@ -1,8 +1,7 @@
 package no.nav.toi.kandidatesproxy
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.apibuilder.ApiBuilder.post
+import io.javalin.apibuilder.ApiBuilder.*
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,11 +20,22 @@ fun startApp(env: Map<String, String>, issuerProperties: List<IssuerProperties>)
     val username = env.hentMiljøvariabel("OPEN_SEARCH_USERNAME")
     val password = env.hentMiljøvariabel("OPEN_SEARCH_PASSWORD")
     val url = env.hentMiljøvariabel("OPEN_SEARCH_URI")
+
     val søkeController = SøkeController(username, password, url)
+    val proxyController = ProxyController(username, password, url)
 
     javalin.routes {
         get("/internal/isAlive", { it.status(200) }, Rolle.ALLE)
         get("/internal/isReady", { it.status(200) }, Rolle.ALLE)
+
+        path("/es") {
+            get(proxyController.proxyKall, Rolle.SYSTEMBRUKER)
+            put(proxyController.proxyKall, Rolle.SYSTEMBRUKER)
+            post(proxyController.proxyKall, Rolle.SYSTEMBRUKER)
+            patch(proxyController.proxyKall, Rolle.SYSTEMBRUKER)
+            delete(proxyController.proxyKall, Rolle.SYSTEMBRUKER)
+        }
+
         post("/{indeks}/_search", søkeController.søkPåIndeks, Rolle.VEILEDER)
     }.start(8300)
 
