@@ -28,8 +28,8 @@ object LokalApplikasjon {
 
 
     private val issuerProperties = IssuerProperties(
-        URL("http://localhost:18300/isso-idtoken/.well-known/openid-configuration"),
+        URL("http://localhost:18300/gyldig-issuer/.well-known/openid-configuration"),
         listOf("audience"),
-        "isso-idtoken"
+        "gyldig-issuer"
     )
 }

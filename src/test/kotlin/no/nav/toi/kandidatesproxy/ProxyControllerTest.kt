@@ -91,7 +91,7 @@ class ProxyControllerTest {
     }
 
     private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
-        "isso-idtoken", "someclientid",
+        "gyldig-issuer", "someclientid",
         DefaultOAuth2TokenCallback(
             issuerId = "aad",
             claims = mapOf(

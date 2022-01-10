@@ -54,9 +54,9 @@ class SøkeControllerTest {
         assertThat(result.get()).isEqualTo(EsMock.jsonResultat)
     }
 
-    private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("isso-idtoken", "someclientid",
+    private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("gyldig-issuer", "someclientid",
         DefaultOAuth2TokenCallback(
-            issuerId = "isso-idtoken",
+            issuerId = "gyldig-issuer",
             claims = mapOf(
                 Pair("name", "navn"),
                 Pair("NAVident", "NAVident"),

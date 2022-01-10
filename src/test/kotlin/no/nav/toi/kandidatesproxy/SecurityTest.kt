@@ -55,8 +55,8 @@ class SecurityTest {
     }
 
     @Test
-    fun `Kall med ugyldig token mot beskyttet endepunkt skal returnere 403`() {
-        val ugyldigToken = hentUgyldigToken(mockOAuth2Server)
+    fun `Kall med token fra ugyldig issuer mot beskyttet endepunkt skal returnere 403`() {
+        val ugyldigToken = hentTokenMedFeilIssuer(mockOAuth2Server)
         val fuelHttpClient = FuelManager()
         val (_, response) = fuelHttpClient.post(søkUrlSomKreverVeileder).authentication()
             .bearer(ugyldigToken.serialize())
@@ -143,9 +143,9 @@ class SecurityTest {
     }
 
     private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
-        "isso-idtoken", "someclientid",
+        "gyldig-issuer", "someclientid",
         DefaultOAuth2TokenCallback(
-            issuerId = "isso-idtoken",
+            issuerId = "gyldig-issuer",
             claims = mapOf(
                 Pair("name", "navn"),
                 Pair("NAVident", "NAVident"),
@@ -155,7 +155,7 @@ class SecurityTest {
         )
     )
 
-    private fun hentUgyldigToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
+    private fun hentTokenMedFeilIssuer(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
         "feilissuer", "someclientid",
         DefaultOAuth2TokenCallback(
             issuerId = "feilissuer",
@@ -169,9 +169,9 @@ class SecurityTest {
     )
 
     private fun hentTokenUtenNavIdentClaim(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
-        "isso-idtoken", "someclientid",
+        "gyldig-issuer", "someclientid",
         DefaultOAuth2TokenCallback(
-            issuerId = "isso-idtoken",
+            issuerId = "gyldig-issuer",
             claims = mapOf(
                 Pair("name", "navn"),
                 Pair("unique_name", "unique_name"),
@@ -181,9 +181,9 @@ class SecurityTest {
     )
 
     private fun hentTokenUtenSystembrukerClaim(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
-        "isso-idtoken", "someclientid",
+        "gyldig-issuer", "someclientid",
         DefaultOAuth2TokenCallback(
-            issuerId = "isso-idtoken",
+            issuerId = "gyldig-issuer",
             claims = mapOf(
                 Pair("sub", "jalla"),
             ),
@@ -192,9 +192,9 @@ class SecurityTest {
     )
 
     private fun hentTokenMedUlikSystembrukerClaim(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
-        "isso-idtoken", "someclientid",
+        "gyldig-issuer", "someclientid",
         DefaultOAuth2TokenCallback(
-            issuerId = "isso-idtoken",
+            issuerId = "gyldig-issuer",
             claims = mapOf(
                 Pair("sub", "jalla"),
                 Pair("oid", "jalla2")
