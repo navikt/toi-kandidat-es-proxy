@@ -36,6 +36,16 @@ object EsMock {
                     .withBody(jsonResultat)
             )
 
+        client.`when`(
+            request()
+                .withPath("/es/.*")
+        )
+            .respond(
+                response()
+                    .withStatusCode(korrektResultatStatusKode)
+                    .withBody(jsonResultat)
+            )
+
         serverHasStarted = true
     }
 

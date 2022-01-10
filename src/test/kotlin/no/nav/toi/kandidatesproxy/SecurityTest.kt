@@ -20,7 +20,7 @@ class SecurityTest {
     private val isAliveUrl = "http://localhost:8300/internal/isAlive"
     private val isReadyUrl = "http://localhost:8300/internal/isReady"
     private val søkUrlSomKreverVeileder = "http://localhost:8300/${EsMock.indeks}/_search"
-    private val proxyUrlSomKreverSystembruker = "http://localhost:8300/es"
+    private val proxyUrlSomKreverSystembruker = "http://localhost:8300/es/sikkerhetstest"
 
     @BeforeAll
     fun init() {
@@ -66,14 +66,36 @@ class SecurityTest {
     }
 
     @Test
-    fun `Kall med token uten claim for NAV-ident mot beskyttet endepunkt skal returnere 403`() {
+    fun `Kall med token uten claim for NAV-ident mot søke-endepunkt skal returnere 403`() {
         val tokenUtenNavIdentClaim = hentTokenUtenNavIdentClaim(mockOAuth2Server)
         val fuelHttpClient = FuelManager()
         val (_, response) = fuelHttpClient.post(søkUrlSomKreverVeileder).authentication()
             .bearer(tokenUtenNavIdentClaim.serialize())
             .responseObject<String>()
 
-         assertThat(response.statusCode).isEqualTo(403)
+        assertThat(response.statusCode).isEqualTo(403)
+    }
+
+    @Test
+    fun `Kall med token uten claim for systembruker mot proxy path skal returne 403`() {
+        val tokenUtenSystembrukerClaim = hentTokenUtenSystembrukerClaim(mockOAuth2Server)
+        val fuelHttpClient = FuelManager()
+        val (_, response) = fuelHttpClient.post(proxyUrlSomKreverSystembruker).authentication()
+            .bearer(tokenUtenSystembrukerClaim.serialize())
+            .responseObject<String>()
+
+        assertThat(response.statusCode).isEqualTo(403)
+    }
+
+    @Test
+    fun `Kall med token der oid og sub er ulik skal returne 403`() {
+        val tokenMedUlikSystembrukerClaim = hentTokenMedUlikSystembrukerClaim(mockOAuth2Server)
+        val fuelHttpClient = FuelManager()
+        val (_, response) = fuelHttpClient.post(proxyUrlSomKreverSystembruker).authentication()
+            .bearer(tokenMedUlikSystembrukerClaim.serialize())
+            .responseObject<String>()
+
+        assertThat(response.statusCode).isEqualTo(403)
     }
 
     @Test
@@ -98,7 +120,7 @@ class SecurityTest {
     fun `Avvise none uten signatur`() {
         val token = hentToken(mockOAuth2Server)
         val tokenParts = token.serialize().split('.')
-        val tokenStr = listOf(Base64.encode("{ \"alg\":\"none\" }"),tokenParts[1]).joinToString(".")
+        val tokenStr = listOf(Base64.encode("{ \"alg\":\"none\" }"), tokenParts[1]).joinToString(".")
         val fuelHttpClient = FuelManager()
         val (_, response) = fuelHttpClient.post(søkUrlSomKreverVeileder).authentication()
             .bearer(tokenStr)
@@ -111,7 +133,7 @@ class SecurityTest {
     fun `Avvise none med signatur`() {
         val token = hentToken(mockOAuth2Server)
         val tokenParts = token.serialize().split('.')
-        val tokenStr = listOf(Base64.encode("{ \"alg\":\"none\" }"),tokenParts[1],tokenParts[1]).joinToString(".")
+        val tokenStr = listOf(Base64.encode("{ \"alg\":\"none\" }"), tokenParts[1], tokenParts[1]).joinToString(".")
         val fuelHttpClient = FuelManager()
         val (_, response) = fuelHttpClient.post(søkUrlSomKreverVeileder).authentication()
             .bearer(tokenStr)
@@ -120,37 +142,63 @@ class SecurityTest {
         assertThat(response.statusCode).isEqualTo(403)
     }
 
-    private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("isso-idtoken", "someclientid",
+    private fun hentToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
+        "isso-idtoken", "someclientid",
         DefaultOAuth2TokenCallback(
             issuerId = "isso-idtoken",
             claims = mapOf(
                 Pair("name", "navn"),
                 Pair("NAVident", "NAVident"),
                 Pair("unique_name", "unique_name"),
-                ),
+            ),
             audience = listOf("audience")
         )
     )
 
-    private fun hentUgyldigToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("feilissuer", "someclientid",
+    private fun hentUgyldigToken(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
+        "feilissuer", "someclientid",
         DefaultOAuth2TokenCallback(
             issuerId = "feilissuer",
             claims = mapOf(
                 Pair("name", "navn"),
                 Pair("NAVident", "NAVident"),
                 Pair("unique_name", "unique_name"),
-                ),
+            ),
             audience = listOf("audience")
         )
     )
 
-    private fun hentTokenUtenNavIdentClaim(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken("isso-idtoken", "someclientid",
+    private fun hentTokenUtenNavIdentClaim(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
+        "isso-idtoken", "someclientid",
         DefaultOAuth2TokenCallback(
             issuerId = "isso-idtoken",
             claims = mapOf(
                 Pair("name", "navn"),
                 Pair("unique_name", "unique_name"),
-                ),
+            ),
+            audience = listOf("audience")
+        )
+    )
+
+    private fun hentTokenUtenSystembrukerClaim(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
+        "isso-idtoken", "someclientid",
+        DefaultOAuth2TokenCallback(
+            issuerId = "isso-idtoken",
+            claims = mapOf(
+                Pair("sub", "jalla"),
+            ),
+            audience = listOf("audience")
+        )
+    )
+
+    private fun hentTokenMedUlikSystembrukerClaim(mockOAuth2Server: MockOAuth2Server) = mockOAuth2Server.issueToken(
+        "isso-idtoken", "someclientid",
+        DefaultOAuth2TokenCallback(
+            issuerId = "isso-idtoken",
+            claims = mapOf(
+                Pair("sub", "jalla"),
+                Pair("oid", "jalla2")
+            ),
             audience = listOf("audience")
         )
     )

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.TestInstance
 import java.net.InetAddress
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class KandidatsøkTest {
+class SøkeControllerTest {
     private val mockOAuth2Server = MockOAuth2Server()
     private val feilIndeksSearchUrl = "http://localhost:8300/feilIndeks/_search"
     private val eksisterendeIndeksSearchUrl = "http://localhost:8300/${EsMock.indeks}/_search"

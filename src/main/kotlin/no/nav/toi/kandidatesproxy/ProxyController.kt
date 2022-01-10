@@ -13,7 +13,10 @@ class ProxyController(
 ) {
     val proxyKall: (Context) -> Unit = { ctx ->
         val (_, response, result) = Fuel
-            .request(Method.valueOf(ctx.method()), url)
+            .request(
+                method = Method.valueOf(ctx.method()),
+                path = url + ctx.path()
+            )
             .authentication().basic(username, password)
             .body(ctx.body())
             .responseString()
