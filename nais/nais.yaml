@@ -19,4 +19,4 @@ spec:
       enabled: true
   openSearch:
     instance: kandidat
-    access: write
+    access: readwrite
